@@ -6,6 +6,7 @@ import com.interview.config.ServiceConfig;
 import com.interview.db.InMemJobStatusStore;
 import com.interview.db.InMemJobStore;
 import com.interview.db.InMemWorkflowStore;
+import com.interview.ex.BadRequestException;
 import com.interview.ex.NotFoundException;
 import com.interview.ex.WorkflowExistedException;
 import com.interview.model.Job;
@@ -112,6 +113,14 @@ public class WorkflowServiceTest {
         workflowService.registerJob(wf, job3, Arrays.asList(job1, job2));
 
         workflowService.executeWorkflow(wf.getName());
+    }
+
+    @Test(expected = BadRequestException.class)
+    public void testRegisterSameJobAsDependentJob() {
+        Workflow wf = workflowService.createWorkflow(BAD_WF);
+        Job job1 = workflowService.getOrCreateJob(JOB_1);
+
+        workflowService.registerJob(wf, job1, Arrays.asList(job1));
     }
 
     @Test

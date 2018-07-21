@@ -1,6 +1,7 @@
 package com.interview.model;
 
 import com.interview.db.InMemJobStatusStore;
+import com.interview.ex.BadRequestException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,6 +35,12 @@ public class SimplePrintNameJob implements Job {
     }
 
     public void registerDependencies(List<Job> jobs) {
+        jobs.forEach(j -> {
+            if (j.equals(this)) {
+                throw new BadRequestException("Dependent job can't be the same job");
+            }
+        });
+
         dependencies.addAll(jobs);
     }
 
