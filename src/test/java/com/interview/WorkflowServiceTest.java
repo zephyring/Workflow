@@ -22,7 +22,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -58,7 +61,8 @@ public class WorkflowServiceTest {
         BAD_WF = "badWork",
         JOB_1 = "job1",
         JOB_2 = "job2",
-        JOB_3 = "job3";
+        JOB_3 = "job3",
+        CONCURR_JOB = "concurrJob";
 
     @Before
     public void before() {
@@ -136,6 +140,26 @@ public class WorkflowServiceTest {
 
         JobStatus jobstatus1 = inMemJobStatusStore.getJobStatus(job1);
         assertEquals(JobStatus.EXECUTED, jobstatus1);
+    }
+
+    @Test
+    public void stressTestWorkflowExecution() throws InterruptedException {
+        int maxWfCnt = 1000,
+            eachJobCnt = 5;
+
+        List<Workflow> wfs = new LinkedList<>();
+
+        for (int i = 0; i < maxWfCnt; i++) {
+            Workflow wf = workflowService.createWorkflow(GOOD_WF + i);
+            for (int j = 0; j < eachJobCnt; j++) {
+                workflowService.registerJob(wf, workflowService.getOrCreateJob(CONCURR_JOB + i + "_" + j));
+            }
+            wfs.add(wf);
+        }
+
+        wfs.forEach(w -> workflowService.executeWorkflow(w.getName()));
+
+        Thread.sleep(1000);
     }
 
 }
