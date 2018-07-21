@@ -1,0 +1,3 @@
+
+executors:
+  concurrency: 20
